@@ -3,8 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title>注册账号</title>
+    <script src="/static/js/jquery.min.js"></script>
 </head>
 <body>
-    注册账号页面
+<span>账号</span><input id="user" />
+<br />
+<span>密码</span><input id="pass" type="password" />
+<br />
+<span>昵称</span><input id="nick"/>
+<button id="register">注册</button>
 </body>
+<script>
+    $("#register").click(function () {
+        var user = $("#user").val()
+        var pass = $("#pass").val()
+        var nick = $("#nick").val()
+        $.post("/register",{
+            user,pass,nick
+        },function (res) {
+            if(res.code !== 200){
+                alert(res.msg)
+            }else{
+                alert("注册成功")
+                location.href="/login"
+            }
+        },"json")
+    })
+</script>
 </html>

@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/nsqio/go-nsq"
 	"net/http"
 )
@@ -21,7 +20,6 @@ func NewSocketClient(token string, w http.ResponseWriter, r *http.Request) (clie
 		Conn:  conn,
 		Token: token,
 	}
-
 	return client
 }
 
@@ -36,7 +34,6 @@ func HandleMessage(msg *nsq.Message) {
 	for _, client := range SocketList {
 		if client.Id != m.ID { // 自己的消息不发给自己
 			client.Conn.WriteJSON(m)
-			fmt.Println("广播给了" + client.Name)
 		}
 	}
 }

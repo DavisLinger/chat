@@ -16,6 +16,7 @@ type Client struct {
 // 消息体结构
 type Message struct {
 	ID       int    `json:"id"`        // 发送者ID
+	Nick     string `json:"nick"`      // 发送者昵称
 	Message  string `json:"message"`   // 消息内容
 	SendTime int64  `json:"send_time"` // 发送时间(时间戳)
 }

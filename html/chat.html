@@ -2,9 +2,183 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>聊天界面</title>
+    <meta name="referrer" content="never">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" type="text/css" href="/static/css/index.css"/>
 </head>
-<body>
-这里是一个简单的聊天界面
+
+<body style="background-color:#4a4a4a;">
+<div class="main-content">
+    <div class="content">
+
+    </div>
+</div>
+<div class="chat">
+    <!-- <div class="chat-tools"></div> -->
+    <textarea rows="6" cols="20" id = "message"></textarea>
+    <button class="send">
+        <span id="send">发送(ctrl+enter)</span>
+    </button>
+</div>
+</div>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/layer/layer.js"></script>
+<script type="application/javascript">
+    var timeHwnd;
+    document.oncontextmenu = function(){return false;};
+    var ws; // 全局WebSocket对象
+    var msgId = -1; // 最近消息ID
+    var upImg,time,tryTime = 0;
+    $(document).ready(function (){
+        var token = localStorage.getItem("token");
+        if(token == null && token == undefined){
+            location.href = "/login";
+            return
+        }
+
+        ws = new WebSocket("ws://127.0.0.1:8080/ws?token="+token)
+        ws.onopen=function(e){ // 连接成功
+            console.log("连接成功")
+            tryTime = 0
+            if (timeHwnd){
+                clearInterval(timeHwnd)
+                timeHwnd = false
+            }
+            timeHwnd = setInterval(function () {
+                if(ws.readyState === WebSocket.OPEN){
+                    ws.send("ping") // 心跳包
+                }else{
+                    clearInterval(timeHwnd)
+                    timeHwnd = false
+                }
+            },10000)
+        }
+
+        ws.onmessage=function(e){ // 收到消息
+            var msgInfo = JSON.parse(e.data);
+            if(msgInfo.id === -1){
+                layer.msg("您的账号在别处登录，请重新登录")
+                localStorage.clear() // 清空本地储存的token
+                setTimeout(function () {
+                    location.href = "/login" // 来互相伤害啊
+                },1000)
+                return
+            }
+            if(msgId !== msgInfo.id){ // 如同一人连续发信息，则无需再加载名字
+                makeOtherName(msgInfo.nick,msgInfo.id)
+            }
+            makeContent(msgInfo.message)
+        }
+
+        ws.onerror=function(e){
+            alert("Ws出现问题")
+        }
+
+        ws.onclose=function(e){
+            tryTime ++;
+            if(tryTime > 3){
+                alert("与服务器断开连接")
+                return
+            }
+            ws = new WebSocket("ws://127.0.0.1:8080/ws?token="+token)
+        }
+        $(document).on("click", "img", function(){
+            $(this).attr("class","img-focus");
+            var TempTime=new Date();
+            if(typeof(upImg)!=="undefined"){
+                if(upImg.eq(0).data("imgid")!==$(this).eq(0).data("imgid")){
+                    upImg.attr("class","img-default")
+                }
+                if(upImg.parent("li").parent(".content-msg").eq(0).data("msgid")==$(this).parent("li").parent(".content-msg").eq(0).data("msgid")){
+                    if(TempTime.getTime()-time<=300){
+                        var json=eval('({ "title": "", "id": 0,"start": 0,"data": [ {"alt":"", "pid": 666,"src": "'+$(this).get(0).src+'","thumb": ""}]})');
+                        layer.photos({
+                            photos: json,
+                            anim: 5,
+                            shade:0.85,
+                        });
+                    }
+                }
+            };
+            upImg=$(this);
+            time=TempTime.getTime();
+        });
+
+
+
+        $(document).on("click", ".content-msg:not(':has(img)')", function(){
+            if(typeof(upImg)!=="undefined"){upImg.attr("class","img-default")};
+        });
+
+        $(".main-content").scrollTop=$(".main-content").scrollHeight;
+    });
+
+    $(".send").click(function(){
+        var message = $("#message").val();
+        sendMsg(message)
+    })
+
+    $("#message").keydown(function(event){
+        if (event.ctrlKey && event.keyCode == 13) {
+            var message = $("#message").val();
+            sendMsg(message)
+        }
+    });
+
+    function sendMsg(message){
+        if(message.length === 0){
+            layer.msg("发送的消息不可为空")
+            return
+        }
+
+        if(msgId !== 0){
+            makeMyName(localStorage.getItem("nick"))
+        }
+        message = makeMessage(message)
+        var msg = { message}
+        ws.send(JSON.stringify(msg))
+
+        makeContent(message)
+        $("#message").val("");
+    }
+
+    function makeContent(message){
+        $('.content').append("<span class='content-msg'><li class='li-show'><span>"+message+"</span></li></span>")
+        $('.main-content')[0].scrollTop=$('.main-content')[0].scrollHeight; // 收到消息后自动滚动到最下
+    }
+
+    function makeOtherName(name,user_id){
+        msgId = user_id;
+        var now = new Date();
+        var hour = now.getHours();
+        if(hour.toString().length === 1) hour = "0" + hour
+        var minu = now.getMinutes();
+        if(minu.toString().length === 1) minu = "0" + minu
+        var sec = now.getSeconds();
+        if(sec.toString().length === 1) sec = "0" + sec
+        const htmlstr = "<span class='content-name name-other'>" + name + " "+hour+":"+minu+":"+sec+"</span>";
+        $('.content').append(htmlstr);
+    }
+
+    function makeMyName(name){
+        msgId = 0;
+        var now = new Date();
+        var hour = now.getHours();
+        if(hour.toString().length === 1) hour = "0" + hour
+        var minu = now.getMinutes();
+        if(minu.toString().length === 1) minu = "0" + minu
+        var sec = now.getSeconds();
+        if(sec.toString().length === 1) sec = "0" + sec
+        const htmlstr = "<span class='content-name name-me'>" + name + " "+hour+":"+minu+":"+sec+"</span>";
+        $('.content').append(htmlstr);
+    }
+
+    function makeMessage(message){
+        message = message.replace(/&/g,"&amp;")
+        message = message.replace(/</g,"&lt;")
+        message = message.replace(/>/g,"&gt;")
+        return message
+    }
+</script>
 </body>
 </html>

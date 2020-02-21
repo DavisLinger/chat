@@ -11,7 +11,7 @@ var DB *gorm.DB
 func InitDb() {
 	var err error
 	DB, err = gorm.Open("mysql", "root:root@(127.0.0.1)/chat?charset=utf8&parseTime=True&loc=Local")
-	DB.LogMode(true)
+	// DB.LogMode(true)
 	if err != nil {
 		fmt.Println(err)
 	}

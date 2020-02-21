@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
     <title>登录界面</title>
@@ -21,7 +21,8 @@
             if(res.code !== 200){
                 alert(res.msg)
             }else{
-                localStorage.setItem("token",res.data)
+                localStorage.setItem("token",res.data.token)
+                localStorage.setItem("nick",res.data.nick)
                 location.href="/chat"
             }
        },"json")

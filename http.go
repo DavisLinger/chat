@@ -35,7 +35,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 // 聊天界面
 func chat(w http.ResponseWriter, r *http.Request) {
-
+	loadingHtml("html/chat.html", w)
 }
 
 // 登录界面及登录函数
@@ -98,6 +98,11 @@ func register(w http.ResponseWriter, r *http.Request) {
 		}
 		if !lib.IsChsAlphaNum(registerInfo.Nick) {
 			w.Write(lib.MakeReturnJson(501, "昵称只能由汉字、字母和数字组成", nil))
+			return
+		}
+
+		if !lib.Len(2, 8, registerInfo.Nick) {
+			w.Write(lib.MakeReturnJson(501, "昵称长度为2~8位", nil))
 			return
 		}
 
