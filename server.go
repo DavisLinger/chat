@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"imoniang.com/chat/service"
+	"imoniang.com/chat/sql"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -18,12 +18,29 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "不是webSocket协议", http.StatusBadRequest)
 		return
 	}
-	token := r.Header.Get("Token")            // 获取Token，可通过JWT请求个人数据
-	name := r.Header.Get("Name")              // 用户昵称应通过Token来获取
-	id, _ := strconv.Atoi(r.Header.Get("Id")) // 此ID应通过Token来获取,此处会发生同ID多地区登录覆盖的问题
-	fmt.Printf("有新用户发起连接:Token:%v,Name:%v,Id:%d\n", token, name, id)
-	client := service.NewSocketClient(token, name, id, w, r)
-	service.SocketList[id] = *client
+	token := r.Header.Get("Token") // 获取Token，可通过JWT请求个人数据
+	client := service.NewSocketClient(token, w, r)
+
+	// 判断Token，并获取个人信息
+	user, result := sql.CheckToken(token)
+	if !result {
+		client.Conn.Close()
+		return
+	}
+
+	// 判断此用户是否已登录
+	_, ok := service.SocketList[user.ID]
+	if ok { // 已登录，通知下线信息
+		service.SocketList[user.ID].Conn.WriteJSON(&service.Message{
+			ID: -1,
+		})
+		service.SocketList[user.ID].Conn.Close()
+	}
+
+	client.Id = user.ID
+	client.Name = user.Nick
+	service.SocketList[user.ID] = *client // 将连接信息加入列表中
+
 	defer client.Conn.Close()
 	for {
 		var m service.Message

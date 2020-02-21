@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录界面</title>
+    <script src="/static/js/jquery.min.js"></script>
+</head>
+<body>
+<span>账号</span><input id="user" />
+<br />
+<span>密码</span><input id="pass" type="password" />
+<button id="login">登录</button>
+</body>
+<script>
+    $("#login").click(function () {
+        var user = $("#user").val()
+        var pass = $("#pass").val()
+       $.post("/login",{
+           user,pass
+       },function (res) {
+            if(res.code !== 200){
+                alert(res.msg)
+            }else{
+                localStorage.setItem("token",res.data)
+                location.href="/chat"
+            }
+       },"json")
+    })
+</script>
+</html>

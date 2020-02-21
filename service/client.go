@@ -11,7 +11,7 @@ import (
 var SocketList = make(map[int]Client)
 
 // 新建客户端连接
-func NewSocketClient(token string, name string, id int, w http.ResponseWriter, r *http.Request) (client *Client) {
+func NewSocketClient(token string, w http.ResponseWriter, r *http.Request) (client *Client) {
 	conn, err := upgrader.Upgrade(w, r, w.Header())
 	if err != nil {
 		return
@@ -20,8 +20,6 @@ func NewSocketClient(token string, name string, id int, w http.ResponseWriter, r
 	client = &Client{
 		Conn:  conn,
 		Token: token,
-		Name:  name,
-		Id:    id,
 	}
 
 	return client
