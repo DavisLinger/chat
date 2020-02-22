@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"github.com/nsqio/go-nsq"
 	"net/http"
+	"sync"
 )
 
 // 用户列表
-var SocketList = make(map[int]Client)
+var SocketList = &sync.Map{}
 
 // 新建客户端连接
 func NewSocketClient(token string, w http.ResponseWriter, r *http.Request) (client *Client) {
@@ -31,9 +32,12 @@ func HandleMessage(msg *nsq.Message) {
 		return
 	}
 
-	for _, client := range SocketList {
-		if client.Id != m.ID { // 自己的消息不发给自己
-			client.Conn.WriteJSON(m)
+	SocketList.Range(func(k, v interface{}) bool {
+		client := v.(Client)
+		if client.Id != m.ID {
+			client.Conn.WriteJSON(m) // 自己的消息不发给自己
 		}
-	}
+		return true
+	})
+
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"imoniang.com/chat/lib"
+	"html/template"
 	"imoniang.com/chat/service"
 	"imoniang.com/chat/sql"
 	"net/http"
@@ -32,17 +32,18 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 判断此用户是否已登录
-	_, ok = service.SocketList[user.ID]
+	v, ok := service.SocketList.Load(user.ID)
 	if ok { // 已登录，通知下线信息
-		service.SocketList[user.ID].Conn.WriteJSON(&service.Message{
+		v.(service.Client).Conn.WriteJSON(&service.Message{
 			ID: -1,
 		})
-		service.SocketList[user.ID].Conn.Close()
+		v.(service.Client).Conn.WriteMessage(websocket.CloseMessage, []byte{})
+		v.(service.Client).Conn.Close()
 	}
 
 	client.Id = user.ID
 	client.Name = user.Nick
-	service.SocketList[user.ID] = *client // 将连接信息加入列表中
+	service.SocketList.Store(user.ID, *client) // 将连接信息加入列表中
 
 	fmt.Printf("有新用户加入 Nick：%v,User:%v\n", client.Name, user.User)
 
@@ -63,7 +64,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		// err := client.Conn.ReadJSON(&m)
 
 		if websocket.IsCloseError(connErr, websocket.CloseNoStatusReceived, websocket.CloseAbnormalClosure, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-			delete(service.SocketList, client.Id)
+			service.SocketList.Delete(client.Id)
 			fmt.Println("用户主动断开了连接")
 			return
 		}
@@ -74,8 +75,8 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		m.ID = client.Id
 		m.Nick = client.Name
 		m.SendTime = time.Now().Unix()
-		m.Message = lib.TrimHtml(m.Message)
-
+		m.Message = template.HTMLEscapeString(m.Message)
+		// TODO:判断消息长度
 		message, err := json.Marshal(m)
 		if err != nil {
 			fmt.Println("转换数据错误", err)

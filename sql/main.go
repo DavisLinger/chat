@@ -3,6 +3,7 @@ package sql
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"imoniang.com/chat/config"
 )
 
 var DB *gorm.DB
@@ -10,8 +11,8 @@ var DB *gorm.DB
 // 初始化MYSQL连接
 func InitDb() {
 	var err error
-	DB, err = gorm.Open("mysql", "root:root@(127.0.0.1)/chat?charset=utf8&parseTime=True&loc=Local")
-	// DB.LogMode(true)
+	DB, err = gorm.Open("mysql", config.DbUser+":"+config.DbPass+"@("+config.DbAddr+")/"+config.DbName+"?charset=utf8&parseTime=True&loc=Local")
+	DB.LogMode(config.DbDebug)
 	if err != nil {
 		fmt.Println(err)
 	}

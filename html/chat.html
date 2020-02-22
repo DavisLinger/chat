@@ -134,11 +134,10 @@
         if(msgId !== 0){
             makeMyName(localStorage.getItem("nick"))
         }
-        message = makeMessage(message)
         var msg = { message}
         ws.send(JSON.stringify(msg))
 
-        makeContent(message)
+        makeContent(makeMessage(message))
         $("#message").val("");
     }
 

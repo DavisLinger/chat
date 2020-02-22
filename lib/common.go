@@ -3,7 +3,6 @@ package lib
 import (
 	"encoding/json"
 	"math/rand"
-	"strings"
 	"time"
 )
 
@@ -37,12 +36,4 @@ func MakeReturnJson(code int, message string, data interface{}) []byte {
 	} else {
 		return jsonStu
 	}
-}
-
-// 转义 < > &
-func TrimHtml(src string) string {
-	// src = strings.Replace(src, "&", "&amp;", -1)
-	src = strings.Replace(src, "<", "&lt;", -1)
-	src = strings.Replace(src, ">", "&gt;", -1)
-	return src
 }

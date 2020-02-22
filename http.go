@@ -3,7 +3,6 @@ package main
 import (
 	"imoniang.com/chat/lib"
 	"imoniang.com/chat/sql"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -18,24 +17,14 @@ type UserInfo struct {
 	Nick  string `json:"nick"`  // 用户昵称
 }
 
-// 加载网页
-func loadingHtml(path string, w http.ResponseWriter) {
-	html, err := ioutil.ReadFile(path)
-	if err != nil {
-		w.Write([]byte("加载网页文件失败"))
-		return
-	}
-	w.Write(html)
-}
-
 // 首页界面
 func index(w http.ResponseWriter, r *http.Request) {
-	loadingHtml("html/index.html", w)
+	http.ServeFile(w, r, "html/index.html")
 }
 
 // 聊天界面
 func chat(w http.ResponseWriter, r *http.Request) {
-	loadingHtml("html/chat.html", w)
+	http.ServeFile(w, r, "html/chat.html")
 }
 
 // 登录界面及登录函数
@@ -79,7 +68,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		w.Write(lib.MakeReturnJson(200, "登录成功", userInfo))
 		return
 	} else {
-		loadingHtml("html/login.html", w)
+		http.ServeFile(w, r, "html/login.html")
 	}
 }
 
@@ -107,7 +96,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !lib.Len(6, 20, registerInfo.Pass, registerInfo.User) {
-			w.Write(lib.MakeReturnJson(501, "账号密码长度为6~20位", nil))
+			w.Write(lib.MakeReturnJson(501, "账号以及密码长度为6~20位", nil))
 			return
 		}
 
@@ -134,6 +123,6 @@ func register(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write(lib.MakeReturnJson(200, "注册成功", nil))
 	} else {
-		loadingHtml("html/register.html", w)
+		http.ServeFile(w, r, "html/register.html")
 	}
 }

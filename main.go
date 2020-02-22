@@ -1,6 +1,7 @@
 package main
 
 import (
+	"imoniang.com/chat/config"
 	"imoniang.com/chat/sql"
 	"log"
 	"net/http"
@@ -8,7 +9,7 @@ import (
 
 func main() {
 	// 初始化Nsq生产者
-	errorNo, err := InitProducer("127.0.0.1:4150")
+	errorNo, err := InitProducer(config.ProducerAddr)
 	if err != nil {
 		switch errorNo {
 		case 1:
@@ -18,9 +19,8 @@ func main() {
 			log.Fatalf("fail to ping %v\n", err)
 		}
 	}
-
 	// 初始化Nsq消费者
-	InitConsumer("Message", "Message-channel", "127.0.0.1:4161")
+	InitConsumer("Message", "Message-channel", config.ConsumerAddr)
 
 	sql.InitDb()
 	// 初始化WebSocket
@@ -32,5 +32,6 @@ func main() {
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static")))) // 注册静态资源路由
 	defer sql.DB.Close()
+	// panic(http.ListenAndServeTLS(":8080", "cer/imoniang.crt", "cer/imoniang.key", nil)) // SSL
 	panic(http.ListenAndServe(":8080", nil)) // 设置监听信息
 }
