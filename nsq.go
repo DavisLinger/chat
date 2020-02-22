@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/moniang/chat/service"
 	"github.com/nsqio/go-nsq"
-	"imoniang.com/chat/service"
 	"io/ioutil"
 	"log"
 	"time"

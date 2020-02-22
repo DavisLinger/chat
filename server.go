@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/moniang/chat/service"
+	"github.com/moniang/chat/sql"
 	"html/template"
-	"imoniang.com/chat/service"
-	"imoniang.com/chat/sql"
 	"net/http"
 	"time"
 )

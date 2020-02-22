@@ -3,7 +3,7 @@ package sql
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"imoniang.com/chat/config"
+	"github.com/moniang/chat/config"
 )
 
 var DB *gorm.DB

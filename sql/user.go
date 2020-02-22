@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"imoniang.com/chat/lib"
+	"github.com/moniang/chat/lib"
 	"time"
 )
 

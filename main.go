@@ -1,8 +1,8 @@
 package main
 
 import (
-	"imoniang.com/chat/config"
-	"imoniang.com/chat/sql"
+	"github.com/moniang/chat/config"
+	"github.com/moniang/chat/sql"
 	"log"
 	"net/http"
 )
